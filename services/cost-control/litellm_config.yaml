@@ -3,6 +3,25 @@
 # 啟動：litellm --config litellm_config.yaml --port 4000 --ui
 
 model_list:
+  # ── 訂閱模型（走 claude CLI OAuth，不消耗 API 額度）────────
+  - model_name: "subscription"
+    litellm_params:
+      model: "openai/claude-oauth-sonnet"   # openai/ 前綴 = 走 OpenAI 相容 API
+      api_base: "http://localhost:3456"
+      api_key: "not-needed"                 # OAuth Server 不需要 key
+    model_info:
+      description: "走 Claude 訂閱 OAuth，不消耗 API 額度（需啟動 claude_oauth_server.py）"
+      cost_per_1m_tokens: 0.0
+
+  - model_name: "subscription-opus"
+    litellm_params:
+      model: "openai/claude-oauth-opus"
+      api_base: "http://localhost:3456"
+      api_key: "not-needed"
+    model_info:
+      description: "訂閱 Opus（最強，適合複雜推理）"
+      cost_per_1m_tokens: 0.0
+
   # ── 快速模型（高頻雜事，最省錢）──────────────────────────
   - model_name: "fast"
     litellm_params:
