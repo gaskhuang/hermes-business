@@ -8,6 +8,7 @@
 
 | # | Skill | 觸發指令 | 解決什麼問題 | 需要前置服務 |
 |---|-------|---------|------------|------------|
+| 00 | [claude-subscription](./00-claude-subscription.md) | `/sub` | 訂閱 OAuth 呼叫，API 費用歸零 | Claude Subscription Server |
 | 01 | [kanban-board](./01-kanban-board.md) | `/kanban` | 任務追蹤，不重複不遺漏 | 無 |
 | 02 | [goal-keeper](./02-goal-keeper.md) | `/goal` | 長期目標，防止漂移 | 無 |
 | 03 | [heartbeat](./03-heartbeat.md) | `/heartbeat` | 執行健康記錄，失敗診斷 | 無 |
@@ -42,6 +43,9 @@
 
 「每次 session 都要重新說明背景」
   → Bundle: memory-stack（04+05）
+
+「有 Claude Max 但還在另付 API 費」
+  → Skill: 00-claude-subscription（裝好立刻省錢）
 
 「AI 帳單太貴，每個月 $100 USD 以上」
   → Bundle: cost-saver（06+07+08）

@@ -17,6 +17,7 @@
 | [second-brain](./services/second-brain/) | Cloudflare Workers KV 記憶層，跨 session / 跨設備持久記憶 | ✅ | ⭐ |
 | [cost-control](./services/cost-control/) | LiteLLM 混合路由，把 AI 月費壓低 60–95% | ✅ | ⭐⭐ |
 | [local-model](./services/local-model/) | Ollama + Mac M 系列，本地跑 32B–70B 模型，inference 成本為零 | ✅ | ⭐ |
+| [claude-subscription](./services/claude-subscription/) | Claude CLI OAuth 包成本地 API，走訂閱不付 API 費 | ✅ | ⭐ |
 
 ### 🛠️ Skills（免費/自用）
 
@@ -34,6 +35,7 @@
 | 04 | [Agent Ops 長跑架構](./BusinessModel/04-agent-ops.md) | $2,000–$5,000 | $8,000–$25,000 |
 | 05 | [Second Brain 記憶層](./BusinessModel/05-second-brain.md) | $1,500–$6,000 | $6,000–$30,000 |
 | 06 | [AI 費用控制顧問](./BusinessModel/06-cost-control.md) | $2,000–$3,000 | $5,000–$20,000 |
+| 07 | [Claude Subscription OAuth](./BusinessModel/07-claude-subscription.md) | $1,000–$2,500 | $5,000–$12,000 |
 
 ---
 
@@ -56,12 +58,13 @@ services/
 ### 推薦安裝順序
 
 ```
-第一步：cost-control（最快見效，立刻省錢）
-第二步：local-model（有 Mac M 系列的話）
-第三步：context-manager（長 session 必裝）
-第四步：agent-ops（需要複雜自動化時）
-第五步：second-brain（需要跨設備記憶時）
-第六步：web-tools（需要真實上網能力時）
+第一步：claude-subscription（有訂閱就裝，立刻讓 API 帳單歸零）
+第二步：cost-control（混合路由，訂閱額度不夠時 fallback）
+第三步：local-model（有 Mac M 系列，隱私任務走本地）
+第四步：context-manager（長 session 必裝）
+第五步：agent-ops（需要複雜自動化時）
+第六步：second-brain（需要跨設備記憶時）
+第七步：web-tools（需要真實上網能力時）
 ```
 
 ---
@@ -76,7 +79,8 @@ hermes-business/
 │   ├── agent-ops/          # Kanban Board + 多代理委派
 │   ├── second-brain/       # Cloudflare Workers KV 記憶層
 │   ├── cost-control/       # LiteLLM 混合路由
-│   └── local-model/        # Ollama 本地模型
+│   ├── local-model/        # Ollama 本地模型
+│   └── claude-subscription/ # Claude CLI OAuth → 本地 API（走訂閱）
 ├── skills/
 │   └── reddit-radar/       # Reddit 12 小時雷達爬蟲
 ├── BusinessModel/          # 六個商業模式完整文件
@@ -90,7 +94,8 @@ hermes-business/
 
 | 症狀 | 解法 |
 |------|------|
-| AI 帳單太高 | cost-control + local-model |
+| 有 Claude 訂閱但還在另付 API 費 | claude-subscription |
+| AI 帳單太高（無訂閱） | cost-control + local-model |
 | Agent 跑到一半卡住，要一直推 | agent-ops |
 | Cron job 跑起來但 agent 不記得目標 | agent-ops（heartbeat + kanban） |
 | 每次 session 都要重新介紹自己 | second-brain |

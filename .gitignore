@@ -17,3 +17,8 @@ searxng/config/uwsgi.ini
 
 # macOS
 .DS_Store
+
+# Runtime files
+services/*/server.log
+services/*/start.sh
+services/*/.venv/

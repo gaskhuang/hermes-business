@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Claude Subscription OAuth Server — launchd plist 範本
+  安裝：install.sh 會自動填入正確路徑
+  手動安裝：把 INSTALL_DIR 和 USERNAME 換成你的實際路徑，複製到 ~/Library/LaunchAgents/
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.claude-oauth.server</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/USERNAME/INSTALL_DIR/start.sh</string>
+  </array>
+
+  <!-- 開機自動啟動 -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- 崩潰後自動重啟 -->
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- 重啟間隔（秒），避免崩潰循環 -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/USERNAME/INSTALL_DIR/server.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/USERNAME/INSTALL_DIR/server.log</string>
+</dict>
+</plist>

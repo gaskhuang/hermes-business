@@ -14,6 +14,7 @@
 | 4 | [Agent Ops 長跑架構](./04-agent-ops.md) | $2,000–$5,000 | $8,000–$25,000 | ⭐⭐ | Hermes / OpenClaw 用戶 |
 | 5 | [Second Brain 記憶層（Cloudflare）](./05-second-brain.md) | $1,500–$6,000 | $6,000–$30,000 | ⭐ | 所有 AI Agent 用戶 |
 | 6 | [AI 費用控制顧問](./06-cost-control.md) | $2,000–$3,000 | $5,000–$20,000 | ⭐⭐ | 已在付 API 費用的人 |
+| 7 | [Claude Subscription OAuth](./07-claude-subscription.md) | $1,000–$2,500 | $5,000–$12,000 | ⭐ | 已有 Claude Pro/Max 訂閱者 |
 
 ---
 
@@ -23,7 +24,10 @@
 第一步：EA-as-a-Service（最快驗證）
   → 找 2–3 個朋友/創業者免費試用，驗證流程
 
-第二步：費用控制審計（最快建立信任）
+第二步：Claude Subscription（有訂閱就裝，ROI 最快）
+  → 問「你有訂 Claude Max 嗎？」→ 有的話直接省掉 API 費
+
+第三步：費用控制審計（最快建立信任）
   → 免費幫人看帳單，說出「你浪費了 $X」
   → 從省錢切入，最容易成交
 
