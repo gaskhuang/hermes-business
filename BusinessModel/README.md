@@ -13,6 +13,7 @@
 | 3 | [AI 執行助理（EA-as-a-Service）](./03-ai-ea.md) | $5,000–$15,000 | — | ⭐⭐ | 創業者、業務、顧問 |
 | 4 | [Agent Ops 長跑架構](./04-agent-ops.md) | $2,000–$5,000 | $8,000–$25,000 | ⭐⭐ | Hermes / OpenClaw 用戶 |
 | 5 | [Second Brain 記憶層（Cloudflare）](./05-second-brain.md) | $1,500–$6,000 | $6,000–$30,000 | ⭐ | 所有 AI Agent 用戶 |
+| 6 | [AI 費用控制顧問](./06-cost-control.md) | $2,000–$3,000 | $5,000–$20,000 | ⭐⭐ | 已在付 API 費用的人 |
 
 ---
 
@@ -22,7 +23,11 @@
 第一步：EA-as-a-Service（最快驗證）
   → 找 2–3 個朋友/創業者免費試用，驗證流程
 
-第二步：Second Brain + Agent Ops（技術門檻低，社群剛需）
+第二步：費用控制審計（最快建立信任）
+  → 免費幫人看帳單，說出「你浪費了 $X」
+  → 從省錢切入，最容易成交
+
+第三步：Second Brain + Agent Ops（技術門檻低，社群剛需）
   → 從 Reddit/Discord 找已在用 Hermes 的用戶
   → 解決他們最痛的兩個問題：記憶消失 + Agent 卡住
 
