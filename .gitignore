@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Reports（本地產出，不上傳）
+skills/reddit-radar/reports/
+skills/reddit-radar/scraper.log
+skills/reddit-radar/*.json
+
+# 環境設定（含敏感資訊）
+.env
+*.env
+searxng/config/uwsgi.ini
+
+# macOS
+.DS_Store

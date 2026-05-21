@@ -1,0 +1,47 @@
+# SearXNG 設定檔 — Web Tools Service
+
+use_default_settings: true
+
+server:
+  secret_key: "CHANGE_THIS_TO_A_RANDOM_STRING"
+  limiter: false
+  image_proxy: true
+  port: 8080
+  bind_address: "0.0.0.0"
+
+ui:
+  static_use_hash: true
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "zh-TW"
+  formats:
+    - html
+    - json      # ← 這行必須開啟，Agent 才能用 API 抓資料
+    - csv
+    - rss
+
+# 啟用的搜尋引擎（可依需求調整）
+engines:
+  - name: google
+    engine: google
+    shortcut: g
+    use_mobile_ui: false
+
+  - name: bing
+    engine: bing
+    shortcut: b
+
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: d
+
+  - name: brave
+    engine: brave
+    shortcut: br
+
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: w
+    base_url: 'https://{language}.wikipedia.org/'
