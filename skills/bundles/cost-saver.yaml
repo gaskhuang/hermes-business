@@ -1,0 +1,51 @@
+# Bundle：Cost Saver（費用最優化）
+# 用途：混合路由 + 本地模型，把 API 月費壓到最低
+# 安裝：cost-control/DEPLOY_PROMPT.md + local-model/DEPLOY_PROMPT.md
+
+name: cost-saver
+description: 智慧路由 + 本地模型，AI API 費用降低 60-95%
+version: "1.0"
+
+skills:
+  - id: "06-smart-router"
+    required: true
+    note: "核心，自動路由任務到對應模型"
+
+  - id: "07-local-llm"
+    required: false
+    note: "需要 Mac M 系列，有則啟用本地路由"
+
+  - id: "08-cost-watcher"
+    required: false
+    note: "監控費用，發現浪費點"
+
+env_required:
+  - ANTHROPIC_API_KEY
+  - LITELLM_PROXY_URL  # 預設 http://localhost:4000
+
+startup_sequence:
+  1: "確認 LiteLLM Proxy 在 localhost:4000 運行"
+  2: "確認 Ollama 在 localhost:11434 運行（若有）"
+  3: "顯示今日費用摘要（若 cost-watcher 啟用）"
+
+routing_rules:
+  fast: "分類、摘要、格式化、翻譯、確認 → Claude Haiku"
+  standard: "分析、草稿、研究、規劃 → Claude Sonnet（預設）"
+  powerful: "深度推理、架構設計 → Claude Opus"
+  local_coder: "所有程式碼任務 → 本地 Qwen2.5-Coder"
+  local_general: "隱私資料 → 本地 Llama（強制，不走雲端）"
+
+expected_savings:
+  without_local: "60-70%"
+  with_local: "85-95%"
+
+use_cases:
+  - "每月 API 費用超過 $50 USD"
+  - "有大量重複性雜事任務"
+  - "需要處理隱私資料（不能上雲）"
+  - "有 Mac M 系列，想善用硬體"
+
+deploy:
+  prompt_files:
+    - "services/cost-control/DEPLOY_PROMPT.md"
+    - "services/local-model/DEPLOY_PROMPT.md"  # 可選

@@ -1,0 +1,50 @@
+# Bundle：Community Intel（社群情報系統）
+# 用途：自動監控社群動態，產出報告，推送摘要到 Telegram
+# 安裝：reddit-radar + telegram-notify
+
+name: community-intel
+description: 自動社群雷達 + 即時 Telegram 推送
+version: "1.0"
+
+skills:
+  - id: "10-reddit-radar"
+    required: true
+    note: "核心，每 12 小時爬取 Reddit"
+
+  - id: "09-telegram-notify"
+    required: true
+    note: "報告完成後推送摘要"
+
+  - id: "03-heartbeat"
+    required: false
+    note: "建議啟用，監控爬蟲是否正常"
+
+  - id: "11-web-search"
+    required: false
+    note: "補充搜尋，深入研究熱議話題"
+
+env_required:
+  - TELEGRAM_BOT_TOKEN
+  - TELEGRAM_CHAT_ID
+
+files_required:
+  - skills/reddit-radar/scraper.py
+  - ~/Library/LaunchAgents/com.reddit-radar.plist
+
+cron_schedule: "每 12 小時（launchd StartInterval: 43200）"
+
+startup_sequence:
+  1: "scraper.py 執行，爬取所有 subreddit"
+  2: "產出 reports/latest.md"
+  3: "發送 Telegram 摘要"
+  4: "更新 heartbeat.md"
+
+use_cases:
+  - "每天早上收到 Reddit 熱議摘要"
+  - "即時追蹤競爭對手或目標社群"
+  - "商業情報收集（hermesagent / openclaw）"
+  - "找到潛在客戶的痛點和需求"
+
+deploy:
+  prompt_files:
+    - "skills/reddit-radar/HERMES_TRANSFER_PROMPT.md"

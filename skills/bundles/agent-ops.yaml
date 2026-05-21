@@ -1,0 +1,45 @@
+# Bundle：Agent Ops（長跑自動化）
+# 用途：讓 agent 跑數小時不需要人工推動，任務自動追蹤、失敗自動記錄
+# 安裝：把 agent-ops-DEPLOY_PROMPT.md 貼給 agent
+
+name: agent-ops
+description: 讓 agent 自主長跑的任務管理系統
+version: "1.0"
+
+skills:
+  - id: "01-kanban-board"
+    required: true
+    note: "核心，任務狀態追蹤"
+
+  - id: "02-goal-keeper"
+    required: true
+    note: "確保任務圍繞長期目標"
+
+  - id: "03-heartbeat"
+    required: true
+    note: "執行健康記錄，失敗診斷"
+
+  - id: "09-telegram-notify"
+    required: false
+    note: "選配，任務完成或失敗時通知"
+
+files_required:
+  - kanban.md
+  - goal.md
+  - heartbeat.md
+
+startup_sequence:
+  1: "讀取 goal.md → 確認使命"
+  2: "讀取 kanban.md → 找 IN_PROGRESS（代表上次中斷）"
+  3: "讀取 heartbeat.md → 若失敗先診斷"
+  4: "執行任務 → 更新 kanban → 更新 heartbeat"
+  5: "完成後可選發送 Telegram"
+
+use_cases:
+  - "設定 cron job 自動跑 Reddit 雷達"
+  - "長時間的研究和分析任務"
+  - "每日自動化工作流程"
+  - "讓 agent 自主處理積壓任務"
+
+deploy:
+  prompt_file: "services/agent-ops/DEPLOY_PROMPT.md"

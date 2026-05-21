@@ -1,0 +1,45 @@
+# Bundle：Memory Stack（記憶雙保險）
+# 用途：本地 session 記憶 + 雲端跨設備記憶，讓 agent 永不失憶
+# 安裝：分別貼 context-manager 和 second-brain 的 DEPLOY_PROMPT
+
+name: memory-stack
+description: 雙層記憶保護，session 不失憶、跨設備同步
+version: "1.0"
+
+skills:
+  - id: "05-context-manager"
+    required: true
+    note: "本地 .task_state.md，防止 session 內失憶"
+
+  - id: "04-second-brain"
+    required: true
+    note: "Cloudflare KV，跨 session / 跨設備持久記憶"
+
+files_required:
+  - .task_state.md  # 自動建立
+
+env_required:
+  - SECOND_BRAIN_URL
+  - SECOND_BRAIN_KEY
+
+startup_sequence:
+  1: "讀取 .task_state.md → 若存在，詢問是否恢復"
+  2: "GET /list?type=pref → 載入用戶偏好"
+  3: "GET /list?type=fact → 載入背景事實"
+  4: "GET /recall?key=log:latest → 載入上次工作日誌"
+  5: "靜默套用偏好，開始工作"
+
+shutdown_sequence:
+  1: "寫入 .task_state.md（當前任務狀態）"
+  2: "POST /remember log:[今日] → 儲存今日工作摘要"
+
+use_cases:
+  - "跨設備使用同一個 agent（電腦 + 手機）"
+  - "長期專案，需要記住幾週前的決策"
+  - "多個 agent 共享用戶偏好"
+  - "防止 context compaction 造成記憶丟失"
+
+deploy:
+  prompt_files:
+    - "services/context-manager/DEPLOY_PROMPT.md"
+    - "services/second-brain/DEPLOY_PROMPT.md"

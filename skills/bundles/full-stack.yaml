@@ -1,0 +1,83 @@
+# Bundle：Full Stack（完整工作站）
+# 用途：所有 skill 全部啟用，適合重度使用者
+# 安裝：依序執行各服務的 DEPLOY_PROMPT.md
+
+name: full-stack
+description: 完整 AI 工作站，所有功能全開
+version: "1.0"
+
+skills:
+  # Layer 1 - 記憶系統
+  - id: "05-context-manager"
+    layer: memory
+    note: "本地 session 記憶"
+
+  - id: "04-second-brain"
+    layer: memory
+    note: "跨設備雲端記憶"
+
+  # Layer 2 - 任務管理
+  - id: "01-kanban-board"
+    layer: task
+    note: "任務看板"
+
+  - id: "02-goal-keeper"
+    layer: task
+    note: "長期目標"
+
+  - id: "03-heartbeat"
+    layer: task
+    note: "健康監控"
+
+  # Layer 3 - 費用控制
+  - id: "06-smart-router"
+    layer: cost
+    note: "智慧路由"
+
+  - id: "07-local-llm"
+    layer: cost
+    note: "本地模型（需 Mac M）"
+
+  - id: "08-cost-watcher"
+    layer: cost
+    note: "費用追蹤"
+
+  # Layer 4 - 情報收集
+  - id: "10-reddit-radar"
+    layer: intel
+    note: "Reddit 雷達"
+
+  - id: "11-web-search"
+    layer: intel
+    note: "SearXNG 搜尋"
+
+  # Layer 5 - 通知
+  - id: "09-telegram-notify"
+    layer: notify
+    note: "Telegram 通知"
+
+startup_sequence:
+  1: "【記憶】讀取 .task_state.md → 讀取 Second Brain 偏好/事實"
+  2: "【任務】讀取 goal.md → 讀取 kanban.md（找中斷點）→ 讀取 heartbeat.md"
+  3: "【費用】確認 LiteLLM Proxy → 確認 Ollama → 顯示費用摘要"
+  4: "【情報】讀取最新 Reddit 雷達報告摘要"
+  5: "【就緒】顯示簡短狀態摘要，等待指令"
+
+status_report_format: |
+  === Hermes 啟動完成 ===
+  🎯 目標：[goal.md 摘要]
+  📋 待辦：[kanban TODO 數量] 個任務
+  🔋 狀態：[上次 heartbeat 狀態]
+  💰 本月費用：[cost-watcher 數據]
+  🧠 記憶：[Second Brain 記憶數量]
+  📡 雷達：[最新報告時間]
+
+deploy:
+  order:
+    1: "services/context-manager/DEPLOY_PROMPT.md"
+    2: "services/second-brain/DEPLOY_PROMPT.md（需 Cloudflare 帳號）"
+    3: "services/agent-ops/DEPLOY_PROMPT.md"
+    4: "services/cost-control/DEPLOY_PROMPT.md"
+    5: "services/local-model/DEPLOY_PROMPT.md（需 Mac M 系列）"
+    6: "skills/reddit-radar/HERMES_TRANSFER_PROMPT.md"
+    7: "services/web-tools/DEPLOY_PROMPT.md（需 Docker）"
