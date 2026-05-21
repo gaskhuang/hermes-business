@@ -1,0 +1,13 @@
+name = "second-brain"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# KV namespace binding
+# Run: wrangler kv:namespace create "MEMORY"
+# Then paste the returned id below
+[[kv_namespaces]]
+binding = "MEMORY"
+id = "PASTE_YOUR_KV_NAMESPACE_ID_HERE"
+
+# API_KEY must be set via Secrets (never commit the actual key)
+# Run: wrangler secret put API_KEY
