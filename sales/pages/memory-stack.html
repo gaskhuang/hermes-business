@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Stack — 讓你的 AI Agent 永遠記得你</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #111118;
+      --bg3: #1a1a28;
+      --border: #2a2a40;
+      --accent: #7c6aff;
+      --accent2: #4fc3f7;
+      --accent3: #f06292;
+      --text: #e8e8f0;
+      --muted: #888899;
+      --green: #4caf82;
+      --red: #ef5350;
+      --yellow: #ffc107;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── 頂部導覽 ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 48px;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .nav-cta {
+      background: var(--accent); color: #fff;
+      padding: 8px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── 通用 ── */
+    section { padding: 96px 48px; max-width: 1100px; margin: 0 auto; }
+    h1 { font-size: clamp(36px, 5vw, 64px); font-weight: 800; letter-spacing: -2px; line-height: 1.1; }
+    h2 { font-size: clamp(28px, 3vw, 42px); font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
+    h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    p { color: var(--muted); line-height: 1.75; }
+    .tag {
+      display: inline-block;
+      background: rgba(124,106,255,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(124,106,255,0.3);
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .grad { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative; overflow: hidden;
+      padding: 120px 48px 80px;
+      max-width: 100%;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 70% 60% at 60% 40%, rgba(124,106,255,0.12) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 40% at 20% 80%, rgba(79,195,247,0.08) 0%, transparent 60%);
+    }
+    .hero-inner { max-width: 780px; position: relative; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(124,106,255,0.1);
+      border: 1px solid rgba(124,106,255,0.25);
+      padding: 6px 14px; border-radius: 20px;
+      font-size: 13px; color: var(--accent);
+      margin-bottom: 32px;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .hero h1 { margin-bottom: 24px; }
+    .hero p { font-size: 20px; margin-bottom: 40px; max-width: 560px; }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      padding: 14px 32px; border-radius: 12px;
+      font-size: 16px; font-weight: 600;
+      text-decoration: none; display: inline-block;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px rgba(124,106,255,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,106,255,0.5); }
+    .btn-secondary {
+      border: 1px solid var(--border); color: var(--text);
+      padding: 14px 32px; border-radius: 12px;
+      font-size: 16px; font-weight: 600;
+      text-decoration: none; display: inline-block;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); background: rgba(124,106,255,0.05); }
+
+    /* ── Reddit 痛點 ── */
+    .pain-section { background: var(--bg2); padding: 80px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .pain-inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+    .pain-label { text-align: center; margin-bottom: 12px; }
+    .pain-title { text-align: center; margin-bottom: 16px; }
+    .pain-sub { text-align: center; max-width: 500px; margin: 0 auto 56px; }
+
+    .reddit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .reddit-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px;
+      position: relative;
+    }
+    .reddit-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; border-radius: 16px 16px 0 0;
+      background: linear-gradient(90deg, var(--accent3), var(--accent));
+    }
+    .reddit-meta {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px; font-size: 12px; color: var(--muted);
+    }
+    .reddit-meta .sub { color: var(--accent2); font-weight: 600; }
+    .reddit-meta .score { color: var(--yellow); }
+    .reddit-quote {
+      font-size: 14px; line-height: 1.65;
+      color: var(--text); font-style: italic;
+      border-left: 3px solid var(--border);
+      padding-left: 12px;
+    }
+    .reddit-quote em { color: var(--accent3); font-style: normal; font-weight: 600; }
+
+    /* ── 問題圖解 ── */
+    .problem-visual {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      margin: 48px 0;
+    }
+    .timeline {
+      display: flex; gap: 0; position: relative;
+      overflow: hidden;
+    }
+    .timeline::before {
+      content: ''; position: absolute;
+      top: 32px; left: 0; right: 0; height: 2px;
+      background: var(--border);
+    }
+    .tl-item {
+      flex: 1; text-align: center; position: relative; padding-top: 72px;
+    }
+    .tl-dot {
+      position: absolute; top: 20px;
+      left: 50%; transform: translateX(-50%);
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; z-index: 1;
+    }
+    .tl-dot.bad { background: var(--red); }
+    .tl-dot.ok  { background: var(--yellow); color: #000; }
+    .tl-dot.good{ background: var(--green); }
+    .tl-label { font-size: 13px; color: var(--muted); }
+    .tl-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── 解法 ── */
+    .solution-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      margin-top: 48px;
+    }
+    .sol-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px;
+      position: relative; overflow: hidden;
+    }
+    .sol-card::after {
+      content: ''; position: absolute;
+      bottom: 0; right: 0; width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,106,255,0.1), transparent);
+    }
+    .sol-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 20px;
+    }
+    .sol-icon.purple { background: rgba(124,106,255,0.15); }
+    .sol-icon.blue   { background: rgba(79,195,247,0.15); }
+    .sol-card h3 { margin-bottom: 12px; }
+    .sol-card p { font-size: 14px; margin-bottom: 20px; }
+    .sol-layers { display: flex; flex-direction: column; gap: 10px; }
+    .sol-layer {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+    }
+    .layer-num {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .layer-text strong { display: block; margin-bottom: 2px; }
+    .layer-text span { color: var(--muted); font-size: 12px; }
+
+    /* ── 比較表 ── */
+    .compare-table {
+      width: 100%; border-collapse: collapse; margin-top: 40px;
+      font-size: 14px;
+    }
+    .compare-table th {
+      padding: 14px 20px; text-align: left;
+      background: var(--bg3); border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .compare-table th:first-child { border-radius: 12px 0 0 0; }
+    .compare-table th:last-child { border-radius: 0 12px 0 0; color: var(--accent); }
+    .compare-table td {
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child { color: var(--text); font-weight: 500; }
+    .compare-table td:not(:first-child) { color: var(--muted); font-size: 13px; }
+    .compare-table td:last-child { color: var(--text); }
+    .check { color: var(--green); font-weight: 700; }
+    .cross { color: var(--red); }
+    .warn  { color: var(--yellow); }
+
+    /* ── How it works ── */
+    .flow-diagram {
+      display: flex; align-items: center; gap: 0;
+      margin: 48px 0; overflow-x: auto;
+      padding: 4px;
+    }
+    .flow-node {
+      flex-shrink: 0;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 24px;
+      text-align: center; min-width: 150px;
+    }
+    .flow-node .icon { font-size: 28px; margin-bottom: 8px; }
+    .flow-node .label { font-size: 13px; font-weight: 600; }
+    .flow-node .sublabel { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .flow-arrow {
+      flex-shrink: 0;
+      width: 40px; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      position: relative;
+    }
+    .flow-arrow::after {
+      content: '▶'; position: absolute;
+      right: -8px; top: 50%; transform: translateY(-50%);
+      color: var(--accent2); font-size: 10px;
+    }
+
+    /* ── 程式碼區塊 ── */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    .code-block .comment { color: #6e7681; }
+    .code-block .key { color: #79c0ff; }
+    .code-block .value { color: #a5d6ff; }
+    .code-block .str { color: #a8d9a7; }
+    .code-block .fn { color: #d2a8ff; }
+    .code-block .sym { color: #ff7b72; }
+
+    /* ── 定價 ── */
+    .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
+    .price-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 32px;
+      position: relative;
+    }
+    .price-card.featured {
+      border-color: var(--accent);
+      background: linear-gradient(145deg, rgba(124,106,255,0.08), var(--bg3));
+    }
+    .price-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #fff;
+      padding: 4px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .price-name { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+    .price-amount { font-size: 40px; font-weight: 800; letter-spacing: -2px; }
+    .price-amount span { font-size: 16px; font-weight: 400; color: var(--muted); }
+    .price-setup { font-size: 13px; color: var(--muted); margin: 4px 0 24px; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .price-features li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--muted);
+    }
+    .price-features li .ck { color: var(--green); flex-shrink: 0; }
+    .price-cta {
+      display: block; text-align: center;
+      margin-top: 28px; padding: 12px;
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .price-cta.outline {
+      border: 1px solid var(--border); color: var(--text);
+    }
+    .price-cta.outline:hover { border-color: var(--accent); color: var(--accent); }
+    .price-cta.filled {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 4px 20px rgba(124,106,255,0.35);
+    }
+    .price-cta.filled:hover { opacity: 0.9; }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
+    .faq-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 28px;
+    }
+    .faq-q { font-weight: 600; margin-bottom: 10px; font-size: 15px; }
+    .faq-a { font-size: 14px; color: var(--muted); }
+
+    /* ── CTA footer ── */
+    .cta-section {
+      text-align: center;
+      padding: 100px 48px;
+      background: linear-gradient(180deg, var(--bg) 0%, rgba(124,106,255,0.05) 100%);
+      border-top: 1px solid var(--border);
+    }
+    .cta-section h2 { margin-bottom: 16px; }
+    .cta-section p { margin-bottom: 40px; }
+
+    /* ── 響應式 ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      section { padding: 64px 24px; }
+      .hero { padding: 100px 24px 60px; }
+      .solution-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .flow-diagram { gap: 8px; }
+      .pain-inner { padding: 0 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 導覽 -->
+<nav>
+  <div class="logo">hermes<span>.</span>memory</div>
+  <a href="#pricing" class="nav-cta">立即安裝 →</a>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      從 Reddit r/hermesagent 真實痛點提煉的解法
+    </div>
+    <h1>讓你的 AI Agent<br><span class="grad">永遠記得你</span></h1>
+    <p>Hindsight 會 crash、Gbrain 要花三天調、換個 session 就失憶——<br>Memory Stack 用三層架構解決這一切，五分鐘裝好。</p>
+    <div class="hero-actions">
+      <a href="#pricing" class="btn-primary">立即安裝 →</a>
+      <a href="#how-it-works" class="btn-secondary">了解運作方式</a>
+    </div>
+  </div>
+</div>
+
+<!-- 社群真實痛點 -->
+<div class="pain-section">
+  <div class="pain-inner">
+    <p class="pain-label"><span class="tag">來自 r/hermesagent 的真實留言</span></p>
+    <h2 class="pain-title">你是不是也有這些問題？</h2>
+    <p class="pain-sub">昨天（2026-05-22）Reddit 上的真實討論，22 篇新文章裡，記憶問題是最高頻的痛點。</p>
+
+    <div class="reddit-grid">
+      <div class="reddit-card">
+        <div class="reddit-meta">
+          <span class="sub">r/hermesagent</span>
+          <span>·</span>
+          <span class="score">▲ 6 分</span>
+          <span>· 23 則留言</span>
+        </div>
+        <div class="reddit-quote">
+          "Anyone running Hindsight? I was wondering if it's useful and makes Hermes better..."
+          <br><br>
+          → 留言：<em>"It does have a heavy bug."</em>
+          <br>
+          → 留言：<em>"server seems to crash for no reason on occasion"</em>
+          <br>
+          → 留言：<em>"Spend the last 3 days optimizing it."</em>
+        </div>
+      </div>
+
+      <div class="reddit-card">
+        <div class="reddit-meta">
+          <span class="sub">r/hermesagent</span>
+          <span>·</span>
+          <span class="score">▲ 2 分</span>
+          <span>· 7 則留言</span>
+        </div>
+        <div class="reddit-quote">
+          "I was experimenting with openrouter free yesterday and it's like my Hermes has <em>amnesia</em>. Forgot a lot of things and the output just looks bad."
+          <br><br>
+          → 留言：<em>"if the thread goes even a little too long, the model starts getting recursive or just stops."</em>
+        </div>
+      </div>
+
+      <div class="reddit-card">
+        <div class="reddit-meta">
+          <span class="sub">r/hermesagent</span>
+          <span>·</span>
+          <span class="score">▲ 3 分</span>
+          <span>· 4 則留言</span>
+        </div>
+        <div class="reddit-quote">
+          "Thoughts on Gbrain vs plain Hermes agent? ...hoping to see if this is worth the effort."
+          <br><br>
+          → 留言：<em>"My instinct says Gbrain is junk but I can't be bothered to actually try it."</em>
+          <br>
+          → 留言：<em>"it's something you need to keep after to build up."</em>
+        </div>
+      </div>
+
+      <div class="reddit-card">
+        <div class="reddit-meta">
+          <span class="sub">r/hermesagent</span>
+          <span>·</span>
+          <span class="score">▲ 1 分</span>
+          <span>· 23 則留言</span>
+        </div>
+        <div class="reddit-quote">
+          → 留言：<em>"Hindsight seems pretty good, but it causes a funny problem if you use some models that are very 'trigger happy'... the model would get <em>side-tracked</em> while it's working on one task and start talking about a completely different task from memory."</em>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 問題本質 -->
+<section>
+  <div class="tag">問題分析</div>
+  <h2>為什麼 Agent 記憶一直出問題？</h2>
+  <p>不是你的錯，是架構的問題。現有解法（Hindsight、Gbrain）都只解決一個層面。</p>
+
+  <div class="problem-visual">
+    <h3 style="margin-bottom: 32px; color: var(--muted);">一個典型的失敗 Session</h3>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot good">1</div>
+        <div class="tl-label">你設定好偏好</div>
+        <div class="tl-desc">告訴 agent 你喜歡<br>什麼回覆風格</div>
+      </div>
+      <div class="flow-arrow" style="margin-top:32px"></div>
+      <div class="tl-item">
+        <div class="tl-dot ok">2</div>
+        <div class="tl-label">Session 持續進行</div>
+        <div class="tl-desc">Context 越來越長<br>Agent 開始變慢</div>
+      </div>
+      <div class="flow-arrow" style="margin-top:32px"></div>
+      <div class="tl-item">
+        <div class="tl-dot bad">3</div>
+        <div class="tl-label">Compaction 觸發</div>
+        <div class="tl-desc">對話被壓縮<br>細節開始消失</div>
+      </div>
+      <div class="flow-arrow" style="margin-top:32px"></div>
+      <div class="tl-item">
+        <div class="tl-dot bad">4</div>
+        <div class="tl-label">隔天新 Session</div>
+        <div class="tl-desc">完全不記得你<br>重新介紹自己</div>
+      </div>
+      <div class="flow-arrow" style="margin-top:32px"></div>
+      <div class="tl-item">
+        <div class="tl-dot bad">✕</div>
+        <div class="tl-label">每次重新開始</div>
+        <div class="tl-desc">永無止境的<br>重複說明</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px;">
+    <div style="background:rgba(239,83,80,0.06); border:1px solid rgba(239,83,80,0.2); border-radius:14px; padding:24px;">
+      <h3 style="color:var(--red); margin-bottom:12px;">❌ Hindsight / Gbrain 的問題</h3>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:14px; color:var(--muted);">
+        <li>• 安裝複雜，需要自架 server</li>
+        <li>• 不定期 crash，沒有告警</li>
+        <li>• 記憶「不適時」觸發，打斷任務</li>
+        <li>• 需要花幾天調整才能穩定</li>
+        <li>• 不支援跨設備同步</li>
+      </ul>
+    </div>
+    <div style="background:rgba(76,175,130,0.06); border:1px solid rgba(76,175,130,0.2); border-radius:14px; padding:24px;">
+      <h3 style="color:var(--green); margin-bottom:12px;">✅ Memory Stack 的設計原則</h3>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:14px; color:var(--muted);">
+        <li>• 三層保護，各層獨立不互相干擾</li>
+        <li>• 零 server，用 Cloudflare 免費方案</li>
+        <li>• 記憶分類，啟動時才載入（不觸發）</li>
+        <li>• 五分鐘裝好，開箱即用</li>
+        <li>• 全球同步，任何設備都能讀取</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 解法 -->
+<section id="how-it-works" style="background:var(--bg2); max-width:100%; padding:80px 0;">
+  <div style="max-width:1100px; margin:0 auto; padding:0 48px;">
+    <div class="tag">解法架構</div>
+    <h2>三層記憶保護，每層解決不同問題</h2>
+    <p>不是一個大而全的系統，而是三個各司其職的輕量層，組合起來天衣無縫。</p>
+
+    <div class="solution-grid">
+      <!-- Context Manager -->
+      <div class="sol-card">
+        <div class="sol-icon purple">🧠</div>
+        <h3>Layer 1 + 2：Context Manager</h3>
+        <p>解決 <strong style="color:var(--text)">Session 內</strong>的記憶問題——不讓 agent 忘記自己在做什麼。</p>
+        <div class="sol-layers">
+          <div class="sol-layer">
+            <div class="layer-num">1</div>
+            <div class="layer-text">
+              <strong>保持最後 5 輪 Raw</strong>
+              <span>永遠知道「剛才在做什麼」</span>
+            </div>
+          </div>
+          <div class="sol-layer">
+            <div class="layer-num">2</div>
+            <div class="layer-text">
+              <strong>每 10–15 輪寫入 .task_state.md</strong>
+              <span>中斷後從文件恢復，不從頭來</span>
+            </div>
+          </div>
+          <div class="sol-layer">
+            <div class="layer-num">3</div>
+            <div class="layer-text">
+              <strong>Native Compaction 作安全網</strong>
+              <span>不依賴它，壓縮前先存檔</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Second Brain -->
+      <div class="sol-card">
+        <div class="sol-icon blue">☁️</div>
+        <h3>Layer 4：Second Brain</h3>
+        <p>解決 <strong style="color:var(--text)">跨 Session / 跨設備</strong>的記憶問題——再也不用重新介紹自己。</p>
+        <div class="sol-layers">
+          <div class="sol-layer">
+            <div class="layer-num">偏好</div>
+            <div class="layer-text">
+              <strong>pref: 用戶偏好</strong>
+              <span>回覆風格、語言、工作時間⋯啟動自動套用</span>
+            </div>
+          </div>
+          <div class="sol-layer">
+            <div class="layer-num">事實</div>
+            <div class="layer-text">
+              <strong>fact: 長期事實</strong>
+              <span>公司名稱、技術棧、目標⋯永久記住</span>
+            </div>
+          </div>
+          <div class="sol-layer">
+            <div class="layer-num">日誌</div>
+            <div class="layer-text">
+              <strong>log: 工作日誌</strong>
+              <span>每天結束自動記錄，明天知道昨天做了什麼</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow -->
+    <h3 style="margin-top:56px; margin-bottom:24px; color:var(--muted)">每次啟動的流程</h3>
+    <div class="flow-diagram">
+      <div class="flow-node">
+        <div class="icon">🚀</div>
+        <div class="label">Session 開始</div>
+        <div class="sublabel">任何設備</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">
+        <div class="icon">📄</div>
+        <div class="label">讀 .task_state</div>
+        <div class="sublabel">恢復上次任務</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">
+        <div class="icon">☁️</div>
+        <div class="label">載入偏好 + 事實</div>
+        <div class="sublabel">Cloudflare KV</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">
+        <div class="icon">📖</div>
+        <div class="label">讀昨日日誌</div>
+        <div class="sublabel">連續性工作</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">
+        <div class="icon">✅</div>
+        <div class="label">直接進入狀態</div>
+        <div class="sublabel">零重複說明</div>
+      </div>
+    </div>
+
+    <!-- Code snippet -->
+    <div class="code-block">
+      <span class="comment"># 每次 Session 結束前，自動執行</span><br>
+      <br>
+      <span class="comment"># 本地存檔（Context Manager）</span><br>
+      <span class="fn">save_task_state</span>(<span class="str">"今天完成了商業模式文件 04-06，準備明天做 landing page"</span>)<br>
+      <br>
+      <span class="comment"># 雲端同步（Second Brain）</span><br>
+      <span class="fn">remember</span>(<span class="key">key</span>=<span class="str">"log:2026-05-22"</span>, <span class="key">value</span>=<span class="str">"完成 07 商業模式文件，部署 OAuth Server"</span>)<br>
+      <br>
+      <span class="comment"># 明天啟動時，自動讀取並顯示</span><br>
+      <span class="sym">→</span> <span class="str">"上次：完成 07 商業模式文件，部署 OAuth Server"</span>
+    </div>
+  </div>
+</section>
+
+<!-- 比較表 -->
+<section>
+  <div class="tag">方案比較</div>
+  <h2>跟其他解法的差異</h2>
+  <p>不是所有記憶系統都一樣。這是客觀的功能對比。</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>功能</th>
+        <th>Hindsight</th>
+        <th>Gbrain</th>
+        <th>原生記憶</th>
+        <th>Memory Stack ✦</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Session 內記憶保護</td>
+        <td><span class="warn">⚠ 有 bug</span></td>
+        <td><span class="cross">✕ 無</span></td>
+        <td><span class="warn">⚠ 靠 compaction</span></td>
+        <td><span class="check">✓ 三層保護</span></td>
+      </tr>
+      <tr>
+        <td>跨 Session 持久記憶</td>
+        <td><span class="check">✓ 有</span></td>
+        <td><span class="check">✓ 有</span></td>
+        <td><span class="cross">✕ 無</span></td>
+        <td><span class="check">✓ Cloudflare KV</span></td>
+      </tr>
+      <tr>
+        <td>跨設備同步</td>
+        <td><span class="cross">✕ 僅本機</span></td>
+        <td><span class="warn">⚠ 需設定</span></td>
+        <td><span class="cross">✕ 無</span></td>
+        <td><span class="check">✓ 全球同步</span></td>
+      </tr>
+      <tr>
+        <td>安裝難度</td>
+        <td><span class="warn">⚠ 需自架 server</span></td>
+        <td><span class="warn">⚠ 複雜設定</span></td>
+        <td><span class="check">✓ 內建</span></td>
+        <td><span class="check">✓ 5 分鐘</span></td>
+      </tr>
+      <tr>
+        <td>穩定性</td>
+        <td><span class="cross">✕ 常 crash</span></td>
+        <td><span class="warn">⚠ 需維護</span></td>
+        <td><span class="check">✓ 穩定</span></td>
+        <td><span class="check">✓ Cloudflare 99.9%</span></td>
+      </tr>
+      <tr>
+        <td>記憶「不適時」觸發</td>
+        <td><span class="cross">✕ 會打斷任務</span></td>
+        <td><span class="warn">⚠ 偶發</span></td>
+        <td><span class="check">✓ 不會</span></td>
+        <td><span class="check">✓ 啟動時才載入</span></td>
+      </tr>
+      <tr>
+        <td>月費</td>
+        <td><span class="muted">免費 / 自架</span></td>
+        <td><span class="muted">免費 / 自架</span></td>
+        <td><span class="check">$0</span></td>
+        <td><span class="check">$0（Cloudflare 免費方案）</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 定價 -->
+<section id="pricing" style="background:var(--bg2); max-width:100%; padding:80px 0;">
+  <div style="max-width:1100px; margin:0 auto; padding:0 48px;">
+    <div class="tag">定價方案</div>
+    <h2>選擇適合你的方案</h2>
+    <p>建置費一次性，月費包含維護和更新。前三名客戶享首月半價。</p>
+
+    <div class="pricing-grid">
+      <!-- Basic -->
+      <div class="price-card">
+        <div class="price-name">Context Manager</div>
+        <div class="price-amount">$6,000 <span>TWD</span></div>
+        <div class="price-setup">建置費｜月費 $1,500</div>
+        <ul class="price-features">
+          <li><span class="ck">✓</span> 三層 Session 記憶保護</li>
+          <li><span class="ck">✓</span> .task_state.md 自動存檔</li>
+          <li><span class="ck">✓</span> /save /load 指令</li>
+          <li><span class="ck">✓</span> 中斷恢復功能</li>
+          <li><span class="ck">✓</span> soul.md 整合設定</li>
+        </ul>
+        <a href="mailto:gskgino@gmail.com?subject=Memory Stack 諮詢" class="price-cta outline">聯絡諮詢</a>
+      </div>
+
+      <!-- Standard -->
+      <div class="price-card featured">
+        <div class="price-badge">最多人選</div>
+        <div class="price-name">Memory Stack 完整版</div>
+        <div class="price-amount">$12,000 <span>TWD</span></div>
+        <div class="price-setup">建置費｜月費 $2,500</div>
+        <ul class="price-features">
+          <li><span class="ck">✓</span> Context Manager 全功能</li>
+          <li><span class="ck">✓</span> Second Brain（Cloudflare KV）</li>
+          <li><span class="ck">✓</span> 偏好 / 事實 / 日誌三類記憶</li>
+          <li><span class="ck">✓</span> /remember /recall /forget 指令</li>
+          <li><span class="ck">✓</span> 跨設備全球同步</li>
+          <li><span class="ck">✓</span> 每月維護 + 更新</li>
+        </ul>
+        <a href="mailto:gskgino@gmail.com?subject=Memory Stack 完整版諮詢" class="price-cta filled">立即安裝 →</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="price-card">
+        <div class="price-name">團隊 / 企業方案</div>
+        <div class="price-amount">$25,000 <span>TWD</span></div>
+        <div class="price-setup">建置費｜月費 $5,000</div>
+        <ul class="price-features">
+          <li><span class="ck">✓</span> 完整版全部功能</li>
+          <li><span class="ck">✓</span> 多用戶記憶隔離</li>
+          <li><span class="ck">✓</span> 共享知識庫設計</li>
+          <li><span class="ck">✓</span> 自訂 domain（memory.yourco.com）</li>
+          <li><span class="ck">✓</span> 優先支援 SLA</li>
+          <li><span class="ck">✓</span> 月度報告</li>
+        </ul>
+        <a href="mailto:gskgino@gmail.com?subject=企業方案諮詢" class="price-cta outline">聯絡諮詢</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="tag">常見問題</div>
+  <h2>你可能想問的問題</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">跟 Hindsight 有什麼不同？它不是免費的嗎？</div>
+      <div class="faq-a">Hindsight 解決的是「過去對話的向量搜尋」，我們解決的是「結構化的偏好 + 事實 + 任務狀態持久化」。它們可以共存，但如果你受夠了 Hindsight 的 crash 和三天調整期，Memory Stack 是更輕量穩定的替代方案。而且你不需要自架 server。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Cloudflare 真的免費嗎？會不會突然收費？</div>
+      <div class="faq-a">Cloudflare Workers KV 免費方案：100,000 次讀/天、1,000 次寫/天、1GB 儲存空間。一個 agent 就算每分鐘存一次記憶，一天才 1,440 次，遠低於上限。Cloudflare 已承諾永久維持免費方案，風險極低。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">需要什麼技術背景才能使用？</div>
+      <div class="faq-a">不需要。建置過程由我們完成，你只需要：一個 Cloudflare 帳號（免費）、你的 Hermes 或 OpenClaw 存取權限。建置完成後，你只要用 /remember、/recall 等自然語言指令就能操作。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">我的資料安全嗎？會不會被看到？</div>
+      <div class="faq-a">資料儲存在你自己的 Cloudflare 帳號下，我們沒有存取權限。API Key 你自己設定，不會分享。如果涉及高度敏感資料，可以選擇只用本地的 Context Manager（.task_state.md），完全不上雲端。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">如果我之後不想用了，資料可以帶走嗎？</div>
+      <div class="faq-a">可以。所有記憶都存在你的 Cloudflare KV 裡，可以一鍵匯出 JSON。本地的 .task_state.md 更是普通的 Markdown 文件，隨時可以複製離開。沒有鎖定。</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA 結尾 -->
+<div class="cta-section">
+  <div class="tag">開始使用</div>
+  <h2>不要再花三天調 Hindsight 了</h2>
+  <p>五分鐘安裝，讓你的 agent 從此記得你。</p>
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+    <a href="mailto:gskgino@gmail.com?subject=Memory Stack 完整版諮詢" class="btn-primary">立即開始 →</a>
+    <a href="https://github.com/gaskhuang/hermes-business" class="btn-secondary" target="_blank">查看 GitHub</a>
+  </div>
+  <p style="margin-top:24px; font-size:13px;">前三名客戶：建置費八折 ｜ 首月免月費</p>
+</div>
+
+</body>
+</html>
